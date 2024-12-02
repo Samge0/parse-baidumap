@@ -27,10 +27,8 @@ python app.py
 
 
 - gradio界面
-![image](https://github.com/user-attachments/assets/f0c22857-5bab-4f98-8bf3-57e7835197c6)
+![image](https://github.com/user-attachments/assets/c946cb85-2c73-42a0-9e85-92b2fcfdde49)
 
 
-- 运行`main.py`后验证围栏坐标
-![image](https://github.com/user-attachments/assets/3af54322-e19b-474e-bdb4-297782f14f85)
-  
-  
+- 运行`main.py`后验证围栏坐标 / 点击查看地图预览>>
+![image](https://github.com/user-attachments/assets/3a2e5e05-a378-446e-aef7-9b022fa37c4e)
