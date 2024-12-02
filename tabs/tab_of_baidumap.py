@@ -4,10 +4,13 @@ from utils import maputil
 
 def create_parser_tab():
     with gr.Tab("百度围栏解析"):
-        gr.Markdown("输入百度接口返回的geo参数字符串，点击提交则解析百度地图的围栏坐标。")
+        gr.Markdown("请输入百度地图接口返回的geo参数字符串，点击提交，稍等片刻将解析出围栏坐标。")
         
         with gr.Row():
             with gr.Column():
+                with gr.Row():
+                    name_input = gr.Textbox(label="自定义name", value="", lines=1)
+                    adcode_input = gr.Textbox(label="自定义adcode", value="", lines=1)
                 geo_input = gr.Textbox(label="输入geo字符串", value="", lines=16)
                 json_format = gr.Checkbox(label="输出JSON格式", value=True)
                 submit_btn = gr.Button("提交")
@@ -21,7 +24,7 @@ def create_parser_tab():
         
         submit_btn.click(
             fn=parse_geo,
-            inputs=[geo_input, json_format],
+            inputs=[geo_input, json_format, name_input, adcode_input],
             outputs=output,
         )
 
@@ -31,8 +34,18 @@ def create_parser_tab():
             outputs=[preview_link]
         )
 
-# geo参数解析
-def parse_geo(geo_input, json_format):
+def parse_geo(geo_input, json_format, name_input, adcode_input):
+    """geo参数解析
+
+    Args:
+        geo_input (str): geo参数
+        json_format (bool): 是否返回json格式
+        name_input (str): 自定义地域名称
+        adcode_input (str): 自定义区域编码
+
+    Returns:
+        _type_: str
+    """
     if not geo_input:
         return "geo参数不能为空"
     
@@ -46,7 +59,7 @@ def parse_geo(geo_input, json_format):
     coordinates_list = maputil.get_lat_lng_list(coordinates_result)
     bbox_list = maputil.get_lat_lng_list(bbox_result)
     center_point = maputil.calculate_center_point(bbox_list)
-    return maputil.export_json(coordinates_list, bbox_list, center_point)
+    return maputil.export_json(coordinates_list, bbox_list, center_point, name_input, adcode_input)
 
 # 生成地图预览的html
 def preview_map(geo_str):
