@@ -1,7 +1,7 @@
-
-# bd墨卡托转BD-09
 import json
 import math
+import os
+import folium
 
 pi = 3.1415926535897932384626
 
@@ -179,8 +179,46 @@ def parse_bbox_data(geo_str: str):
     point = geo_str[1].replace(";", ",").split(",")
     return parse_map_data(point)
 
+def calculate_center_point(bbox) -> list:
+    """
+    计算地图中心点
 
-def export_json(coordinates: list, bbox: list):
+    Args:
+        bbox: bbox是一个包含两个顶点坐标的列表
+                每个顶点坐标是一个包含经度和纬度的列表
+                例如：bbox = [[114.03077380624964, 22.66439081064176], [114.0318688927557, 22.665754600064943]]
+
+    Returns:
+        list: 返回中心点坐标 [经度, 纬度]
+    """
+    # 获取两个顶点的坐标
+    point1, point2 = bbox
+    
+    # 分别计算经度和纬度的中心点
+    center_longitude = (point1[0] + point2[0]) / 2
+    center_latitude = (point1[1] + point2[1]) / 2
+    
+    return [center_longitude, center_latitude]
+
+
+def get_lat_lng_list(value: str) -> list:
+    """获取坐标列表
+
+    Args:
+        value (str): 字符串格式的坐标， 例如："114.03077380624964, 22.66439081064176;114.0318688927557, 22.665754600064943"
+
+    Returns:
+        list: 列表格式的坐标， 例如：[[114.03077380624964, 22.66439081064176], [114.0318688927557, 22.665754600064943]]
+    """
+    result_list = []
+    for item in value.split(';'):
+        if not item or "," not in item:
+            continue
+        item_splits = item.split(',')
+        result_list.append([float(item_splits[0]), float(item_splits[1])])
+    return result_list
+
+def export_json(coordinates: list, bbox: list, center: list, name: str = "", adcode: str = ""):
     """
     将坐标数据导出为GeoJSON格式
     Args:
@@ -194,6 +232,12 @@ def export_json(coordinates: list, bbox: list):
         "features": [
             {
                 "type": "Feature",
+                "properties": {
+                    "name": name or "",
+                    "adcode": adcode or "",
+                    "center": center,
+                    "coordinates": [coordinates or []]
+                },
                 "geometry": {
                     "type": "Polygon",
                     "coordinates": coordinates or []
@@ -204,6 +248,52 @@ def export_json(coordinates: list, bbox: list):
         ]
     }
     return json.dumps(geojson_data, indent=4, ensure_ascii=False)
+
+# 获取预览html的路径
+def get_preview_dir() -> str:
+    return os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))).replace(os.sep, "/")
+
+# 获取预览html的路径
+def get_map_html_path(name: str = "baidu_map.html") -> str:
+    return f"{get_preview_dir()}/{name}"
+
+# 生成地图预览的html
+def generate_map_html(geo_str, output_path=None):
+    output_path = output_path or get_map_html_path()
+    
+    # 提取百度坐标
+    coordinates = parse_coordinates_data(geo_str)
+
+    coord_list = coordinates.split(";")
+    coords_bd09 = []
+    for coord in coord_list:
+        if not coord:
+            continue
+        lon, lat = map(float, coord.split(","))
+        bd_lon, bd_lat = lon, lat
+        coords_bd09.append([bd_lat, bd_lon])
+
+    # 使用 folium 绘制地图
+    m = folium.Map(location=[coords_bd09[0][0], coords_bd09[0][1]], zoom_start=16)
+
+    # 绘制路径
+    folium.PolyLine(coords_bd09, color="blue", weight=2.5, opacity=1).add_to(m)
+
+    # 添加标记
+    for coord in coords_bd09:
+        folium.Marker([coord[0], coord[1]], popup="Point").add_to(m)
+        
+    # 计算地图中心点
+    bbox_data_str = parse_bbox_data(geo_str)
+    bbox_data_list = get_lat_lng_list(bbox_data_str)
+    center_point = calculate_center_point(bbox_data_list)
+    cneter_latitude = center_point[1]
+    cneter_longitude = center_point[0]
+    folium.Marker([cneter_latitude, cneter_longitude], popup="Center").add_to(m)
+
+    # 保存为 HTML 文件
+    m.save(output_path)
+    return output_path
 
 
 if __name__ == "__main__":

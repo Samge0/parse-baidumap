@@ -14,7 +14,9 @@ docker push samge/parse-baidumap
 ```shell
 docker run -d \
 --name parse-baidumap \
+-p 7862:7862 \
 -p 7863:7863 \
+-e API_BASE_URL="" \
 --pull=always \
 --restart always \
 --memory=0.5G \

@@ -1,2 +1,4 @@
-gradio==5.7.1
 folium==0.18.0
+gradio==5.7.1
+fastapi
+uvicorn

@@ -11,7 +11,11 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 声明容器监听的端口
+EXPOSE 7862
 EXPOSE 7863
+
+# 设置环境变量
+ENV API_BASE_URL="http://localhost:7862"
 
 # 运行应用程序
 ENTRYPOINT ["python", "app.py"]
