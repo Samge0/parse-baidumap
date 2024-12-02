@@ -143,11 +143,9 @@ def parse_map_data(point: list):
     """
     point_transform=[]
     for i in range(int(len(point)/2)):#全部点的坐标，分别是x,y,的形式
-        if i==0: #[2:]的作用：删除第一个坐标的‘1-’字符
-            point[2*i] = point[2*i][2:] 
-        if i==int((len(point)/2)-1):  #删除最后一个坐标的‘;’字符
-            point[2*i+1] = point[2*i+1][:-1]
-    #                     print('第'+str(i)+'个点的坐标',float(point[2*i]),float(point[2*i+1]))#打印出各点的坐标
+        if "-" in point[2*i]:
+            point[2*i] = point[2*i].split("-")[1]
+        point[2*i+1] = point[2*i+1].replace(";", "")
         point_Mecator2BD09 = Mecator2BD09(float(point[2*i]),float(point[2*i+1]))
         point_BD092WGS84 = BD092WGS84(point_Mecator2BD09)
         point_transform.append(point_BD092WGS84)
