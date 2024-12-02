@@ -1,7 +1,14 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# author：
+# date：2024-12-02 23:36
+# describe：地图相关工具类
+
 import json
 import math
-import os
 import folium
+
+from utils import fileutil
 
 pi = 3.1415926535897932384626
 
@@ -250,12 +257,8 @@ def export_json(coordinates: list, bbox: list, center: list, name: str = "", adc
     return json.dumps(geojson_data, indent=4, ensure_ascii=False)
 
 # 获取预览html的路径
-def get_preview_dir() -> str:
-    return os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))).replace(os.sep, "/")
-
-# 获取预览html的路径
 def get_map_html_path(name: str = "baidu_map.html") -> str:
-    return f"{get_preview_dir()}/{name}"
+    return f"{fileutil.preview_dir}/{name}"
 
 # 生成地图预览的html
 def generate_map_html(geo_str, output_path=None):
@@ -280,8 +283,8 @@ def generate_map_html(geo_str, output_path=None):
     folium.PolyLine(coords_bd09, color="blue", weight=2.5, opacity=1).add_to(m)
 
     # 添加标记
-    for coord in coords_bd09:
-        folium.Marker([coord[0], coord[1]], popup="Point").add_to(m)
+    # for coord in coords_bd09:
+    #     folium.Marker([coord[0], coord[1]], popup="Point").add_to(m)
         
     # 计算地图中心点
     bbox_data_str = parse_bbox_data(geo_str)

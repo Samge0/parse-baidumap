@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# author：samge
+# date：2024-12-02 23:35
+# describe：
+
 import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -6,12 +12,12 @@ import uvicorn
 from tabs import tab_of_baidumap, tab_of_about
 import threading
 
-from utils import maputil
+from utils import fileutil
 
 app = FastAPI()
 
 # 添加静态文件服务
-preview_dir = maputil.get_preview_dir()
+preview_dir = fileutil.preview_dir
 os.makedirs(preview_dir, exist_ok=True)
 app.mount("/preview", StaticFiles(directory=preview_dir), name="preview")
 
