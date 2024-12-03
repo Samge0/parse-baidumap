@@ -57,7 +57,7 @@ def parse_geo(geo_input, json_format, name_input, adcode_input):
         _type_: str
     """
     if not geo_input:
-        return "geo参数不能为空"
+        return "geo参数不能为空", None
     
     coordinates_result = maputil.parse_coordinates_data(geo_input)
     

@@ -35,7 +35,7 @@ def preview_map(geo_str):
     try:
         maputil.generate_map_html_by_json(geo_str, maputil.get_map_html_path(html_name))
     except Exception as e:
-        return "自定义的百度围栏json不符合要求，请参考示例进行调整"
+        return f"自定义的百度围栏json不符合要求，请参考示例进行调整。错误信息：${e}"
     
     # 返回预览链接
     preview_url = f"{api_base_url}/preview/{html_name}"

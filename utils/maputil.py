@@ -264,31 +264,79 @@ def generate_map_html_by_json(json_str: str, output_path=None):
     output_path = output_path or get_map_html_path()
     
     map_data = json.loads(json_str)
-    coordinates = map_data["features"][0]["geometry"]["coordinates"][0]
-    coordinates = [(coord[1], coord[0]) for coord in coordinates]
-    bbox = map_data["features"][0]["bbox"]
-    center = map_data["features"][0]["properties"]["center"]
-    name = map_data["features"][0]["properties"]["name"]
-    adcode = map_data["features"][0]["properties"]["adcode"]
+    
+    features = map_data.get("features") or []
+    if len(features) == 0:
+        return "features字段不能为空值"
+    
+    try:
+        coordinate_type = features[0].get("geometry").get("type")
+        first_coordinates = features[0].get("geometry").get("coordinates")[0]
+        if coordinate_type == "MultiPolygon":
+            first_coordinates = first_coordinates[0]
+    except Exception as e:
+        return "geometry.coordinates字段解析异常，请参考示例数据检查格式"
     
     # 使用 folium 绘制地图
-    m = folium.Map(location=[coordinates[0][0], coordinates[0][1]], zoom_start=16)
-
-    # 绘制路径
-    folium.PolyLine(coordinates, color="blue", weight=2.5, opacity=1).add_to(m)
-
-    # 添加标记
-    # for coord in coordinates:
-    #     folium.Marker([coord[0], coord[1]], popup="Point").add_to(m)
+    m = folium.Map(location=[first_coordinates[0][1], first_coordinates[0][0]], zoom_start=16)
         
-    # 计算地图中心点
-    cneter_latitude = center[1]
-    cneter_longitude = center[0]
-    folium.Marker([cneter_latitude, cneter_longitude], popup=f"Center {name} {adcode}").add_to(m)
+    # 存在多围栏的情况
+    for feature in features:
+        
+        # 属性信息（名称、adcode、中心点）
+        properties: dict = get_dict_value(feature, "properties", {})
+        name = get_dict_value(properties, "name", "")
+        adcode = get_dict_value(properties, "adcode", "")
+        
+        # 围栏坐标信息
+        geometry: dict = get_dict_value(feature, "geometry", {})
+        coordinate_type = get_dict_value(geometry, "type", "")
+        coordinates = get_dict_value(geometry, "coordinates", [])
+        
+        # 存在多围栏的情况
+        for sub_coordinates in coordinates:
+            if coordinate_type == "MultiPolygon":   
+                # 多边界情况
+                for sub_coordinates_item in sub_coordinates:
+                    errorMsg = polyLine(m, sub_coordinates_item)
+                    if errorMsg:
+                        return errorMsg
+            else:
+                # 默认情况
+                errorMsg = polyLine(m, sub_coordinates)
+                if errorMsg:
+                    return errorMsg
+            
+        # 地图中心点
+        center = get_dict_value(properties, "center", [])
+        if center and len(center) == 2:
+            cneter_latitude = center[1]
+            cneter_longitude = center[0]
+            folium.Marker([cneter_latitude, cneter_longitude], popup=f"Center {name} {adcode}").add_to(m)
 
     # 保存为 HTML 文件
     m.save(output_path)
     return output_path
+
+# 绘制路径
+def polyLine(m, coordinates: list) -> str:
+    try:
+        coordinates = [[coord[1], coord[0]] for coord in coordinates]
+
+        # 绘制路径
+        folium.PolyLine(coordinates, color="blue", weight=2.5, opacity=1).add_to(m)
+
+        # 添加标记
+        # for coord in coordinates:
+        #     folium.Marker([coord[0], coord[1]], popup="Point").add_to(m)
+            
+        return None
+    except:
+        return "coordinates字段层级解析异常，请参考示例数据检查格式"
+
+# 读取字典字段
+def get_dict_value(data, key: str, default_value):
+    return (data or {}).get(key) or default_value
 
 # 根据原始geo字符串生成地图预览的html
 def generate_map_html(geo_str, output_path=None, name="", adcode=""):
