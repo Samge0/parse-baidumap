@@ -10,7 +10,7 @@ import gradio as gr
 from utils import maputil
 
 def create_parser_tab():
-    with gr.Tab("百度围栏解析"):
+    with gr.Tab("解析"):
         
         with gr.Row():
             with gr.Column():

@@ -242,12 +242,11 @@ def export_json(coordinates: list, bbox: list, center: list, name: str = "", adc
                 "properties": {
                     "name": name or "",
                     "adcode": adcode or "",
-                    "center": center,
-                    "coordinates": [coordinates or []]
+                    "center": center
                 },
                 "geometry": {
                     "type": "Polygon",
-                    "coordinates": coordinates or []
+                    "coordinates": [coordinates or []]
                 },
                 "id": 0,
                 "bbox": bbox or []
@@ -260,43 +259,50 @@ def export_json(coordinates: list, bbox: list, center: list, name: str = "", adc
 def get_map_html_path(name: str = "baidu_map.html") -> str:
     return f"{fileutil.preview_dir}/{name}"
 
-# 生成地图预览的html
-def generate_map_html(geo_str, output_path=None):
+# 根据结构化的json数据生成地图预览的html
+def generate_map_html_by_json(json_str: str, output_path=None):
     output_path = output_path or get_map_html_path()
     
-    # 提取百度坐标
-    coordinates = parse_coordinates_data(geo_str)
-
-    coord_list = coordinates.split(";")
-    coords_bd09 = []
-    for coord in coord_list:
-        if not coord:
-            continue
-        lon, lat = map(float, coord.split(","))
-        bd_lon, bd_lat = lon, lat
-        coords_bd09.append([bd_lat, bd_lon])
-
+    map_data = json.loads(json_str)
+    coordinates = map_data["features"][0]["geometry"]["coordinates"][0]
+    coordinates = [(coord[1], coord[0]) for coord in coordinates]
+    bbox = map_data["features"][0]["bbox"]
+    center = map_data["features"][0]["properties"]["center"]
+    name = map_data["features"][0]["properties"]["name"]
+    adcode = map_data["features"][0]["properties"]["adcode"]
+    
     # 使用 folium 绘制地图
-    m = folium.Map(location=[coords_bd09[0][0], coords_bd09[0][1]], zoom_start=16)
+    m = folium.Map(location=[coordinates[0][0], coordinates[0][1]], zoom_start=16)
 
     # 绘制路径
-    folium.PolyLine(coords_bd09, color="blue", weight=2.5, opacity=1).add_to(m)
+    folium.PolyLine(coordinates, color="blue", weight=2.5, opacity=1).add_to(m)
 
     # 添加标记
-    # for coord in coords_bd09:
+    # for coord in coordinates:
     #     folium.Marker([coord[0], coord[1]], popup="Point").add_to(m)
         
     # 计算地图中心点
-    bbox_data_str = parse_bbox_data(geo_str)
-    bbox_data_list = get_lat_lng_list(bbox_data_str)
-    center_point = calculate_center_point(bbox_data_list)
-    cneter_latitude = center_point[1]
-    cneter_longitude = center_point[0]
-    folium.Marker([cneter_latitude, cneter_longitude], popup="Center").add_to(m)
+    cneter_latitude = center[1]
+    cneter_longitude = center[0]
+    folium.Marker([cneter_latitude, cneter_longitude], popup=f"Center {name} {adcode}").add_to(m)
 
     # 保存为 HTML 文件
     m.save(output_path)
     return output_path
+
+# 根据原始geo字符串生成地图预览的html
+def generate_map_html(geo_str, output_path=None, name="", adcode=""):
+    
+    coordinates_result = parse_coordinates_data(geo_str)
+    bbox_result = parse_bbox_data(geo_str)
+    
+    coordinates_list = get_lat_lng_list(coordinates_result)
+    bbox_list = get_lat_lng_list(bbox_result)
+    
+    center_point = calculate_center_point(bbox_list)
+    result_str = export_json(coordinates_list, bbox_list, center_point, name, adcode)
+
+    return generate_map_html_by_json(result_str, output_path=output_path)
 
 
 if __name__ == "__main__":
