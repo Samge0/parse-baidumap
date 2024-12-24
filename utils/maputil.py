@@ -9,6 +9,7 @@ import math
 import folium
 
 from utils import fileutil
+from utils.coordTransform_utils import bd09_to_gcj02
 
 pi = 3.1415926535897932384626
 
@@ -140,11 +141,12 @@ def tranlng1(lng, lat):
             math.sin(lng / 30.0 * pi)) * 2.0 / 3.0
     return ret
 
-def parse_map_data(point: list):
+def parse_map_data(point: list, output_map_type: str = "WGS84"):
     """
     解析百度地图返回的地理数据字符串
     Args:
         geo_str: 百度地图返回的地理数据字符串
+        output_map_type: 坐标类型
     Returns:
         转换后的坐标点字符串，格式为: "lng1,lat1;lng2,lat2;..."
     """
@@ -153,28 +155,33 @@ def parse_map_data(point: list):
         if "-" in point[2*i]:
             point[2*i] = point[2*i].split("-")[1]
         point[2*i+1] = point[2*i+1].replace(";", "")
-        point_Mecator2BD09 = Mecator2BD09(float(point[2*i]),float(point[2*i+1]))
-        point_BD092WGS84 = BD092WGS84(point_Mecator2BD09)
-        point_transform.append(point_BD092WGS84)
-        point_str = '' #这是创建一个文本存储
+        point_info = Mecator2BD09(float(point[2*i]),float(point[2*i+1]))
+        if output_map_type == "WGS84":
+            point_info = BD092WGS84(point_info)
+        elif output_map_type == "GCJ02":
+            point_info = bd09_to_gcj02(point_info[0], point_info[1])
+        point_transform.append(point_info)
+        
+    point_str = '' # 这是创建一个文本存储
     for j in range(len(point_transform)):
         point_str = point_str+(str(point_transform[j])).replace(' ','')[1:-1]+';'
     return point_str
 
-def parse_coordinates_data(geo_str: str):
+def parse_coordinates_data(geo_str: str, output_map_type: str = "WGS84"):
     """
     解析百度地图返回的地理数据字符串
     Args:
         geo_str: 百度地图返回的地理数据字符串
+        output_map_type: 坐标类型
     Returns:
         转换后的坐标点字符串，格式为: "lng1,lat1;lng2,lat2;..."
     """
     geo_str = geo_str.split('|')
     point = geo_str[2].split(",")
-    return parse_map_data(point)
+    return parse_map_data(point, output_map_type)
 
 
-def parse_bbox_data(geo_str: str):
+def parse_bbox_data(geo_str: str, output_map_type: str = "WGS84"):
     """
     解析百度地图的边界坐标
     Args:
@@ -184,7 +191,7 @@ def parse_bbox_data(geo_str: str):
     """
     geo_str = geo_str.split('|')
     point = geo_str[1].replace(";", ",").split(",")
-    return parse_map_data(point)
+    return parse_map_data(point, output_map_type)
 
 def calculate_center_point(bbox) -> list:
     """
@@ -256,11 +263,11 @@ def export_json(coordinates: list, bbox: list, center: list, name: str = "", adc
     return json.dumps(geojson_data, indent=4, ensure_ascii=False)
 
 # 获取预览html的路径
-def get_map_html_path(name: str = "baidu_map.html") -> str:
+def get_map_html_path(name: str = "wgs84_map.html") -> str:
     return f"{fileutil.preview_dir}/{name}"
 
 # 根据结构化的json数据生成WGS84地图预览的html
-def generate_map_html_by_json(json_str: str, output_path=None):
+def generate_wgs84_map_html_by_json(json_str: str, output_path=None):
     output_path = output_path or get_map_html_path()
     
     map_data = json.loads(json_str)
@@ -358,10 +365,10 @@ def get_dict_value(data, key: str, default_value):
     return (data or {}).get(key) or default_value
 
 # 根据原始geo字符串生成WGS84地图预览的html
-def generate_map_html(geo_str, output_path=None, name="", adcode=""):
+def generate_wgs84_map_html(geo_str, output_path=None, name="", adcode="", output_map_type: str = "WGS84"):
     
-    coordinates_result = parse_coordinates_data(geo_str)
-    bbox_result = parse_bbox_data(geo_str)
+    coordinates_result = parse_coordinates_data(geo_str, output_map_type)
+    bbox_result = parse_bbox_data(geo_str, output_map_type)
     
     coordinates_list = get_lat_lng_list(coordinates_result)
     bbox_list = get_lat_lng_list(bbox_result)
@@ -369,7 +376,7 @@ def generate_map_html(geo_str, output_path=None, name="", adcode=""):
     center_point = calculate_center_point(bbox_list)
     result_str = export_json(coordinates_list, bbox_list, center_point, name, adcode)
 
-    return generate_map_html_by_json(result_str, output_path=output_path)
+    return generate_wgs84_map_html_by_json(result_str, output_path=output_path)
 
 
 if __name__ == "__main__":

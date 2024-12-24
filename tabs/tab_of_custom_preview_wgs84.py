@@ -32,9 +32,9 @@ def preview_map(geo_str):
     api_base_url = os.environ.get("API_BASE_URL", "http://localhost:7862")
     
     # 生成地图
-    html_name: str = "baidu_map.html"
+    html_name: str = "wgs84_map.html"
     try:
-        maputil.generate_map_html_by_json(geo_str, maputil.get_map_html_path(html_name))
+        maputil.generate_wgs84_map_html_by_json(geo_str, maputil.get_map_html_path(html_name))
     except Exception as e:
         return f"自定义的WGS84地图围栏json不符合要求，请参考示例进行调整。错误信息：${e}"
     
