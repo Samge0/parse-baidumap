@@ -30,5 +30,5 @@ python app.py
 ![image](https://github.com/user-attachments/assets/c946cb85-2c73-42a0-9e85-92b2fcfdde49)
 
 
-- 运行`main.py`后验证围栏坐标 / 点击查看地图预览>>
+- 运行`main.py`后验证围栏坐标 / 点击查看WGS84地图预览>>
 ![image](https://github.com/user-attachments/assets/3a2e5e05-a378-446e-aef7-9b022fa37c4e)

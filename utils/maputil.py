@@ -259,7 +259,7 @@ def export_json(coordinates: list, bbox: list, center: list, name: str = "", adc
 def get_map_html_path(name: str = "baidu_map.html") -> str:
     return f"{fileutil.preview_dir}/{name}"
 
-# 根据结构化的json数据生成地图预览的html
+# 根据结构化的json数据生成WGS84地图预览的html
 def generate_map_html_by_json(json_str: str, output_path=None):
     output_path = output_path or get_map_html_path()
     
@@ -357,7 +357,7 @@ def polyLine(m, coordinates: list) -> str:
 def get_dict_value(data, key: str, default_value):
     return (data or {}).get(key) or default_value
 
-# 根据原始geo字符串生成地图预览的html
+# 根据原始geo字符串生成WGS84地图预览的html
 def generate_map_html(geo_str, output_path=None, name="", adcode=""):
     
     coordinates_result = parse_coordinates_data(geo_str)

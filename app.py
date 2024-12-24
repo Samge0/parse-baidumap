@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import gradio as gr
 import uvicorn
-from tabs import tab_of_baidumap, tab_of_custom_preview, tab_of_about
+from tabs import tab_of_baidumap, tab_of_custom_preview_wgs84, tab_of_custom_preview_bd09, tab_of_about
 import threading
 
 from utils import fileutil
@@ -28,7 +28,8 @@ with gr.Blocks(title="百度围栏解析") as iface:
     # 创建标签页
     with gr.Tabs():
         tab_of_baidumap.create_parser_tab()
-        tab_of_custom_preview.create_parser_tab()
+        tab_of_custom_preview_wgs84.create_parser_tab()
+        tab_of_custom_preview_bd09.create_parser_tab()
         tab_of_about.create_about_tab()
 
 def run_fastapi():

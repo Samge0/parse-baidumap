@@ -81,7 +81,7 @@ def parse_geo(geo_input, json_format, name_input, adcode_input):
         
     return result_str, gr.update(value=file_path, visible=True)
 
-# 生成地图预览的html
+# 生成WGS84地图预览的html
 def preview_map(geo_str):
     if not geo_str:
         return "geo参数不能为空"
@@ -95,4 +95,4 @@ def preview_map(geo_str):
     
     # 返回预览链接
     preview_url = f"{api_base_url}/preview/{html_name}?t={time.time()}"
-    return f'<a href="{preview_url}" target="_blank">点击查看地图预览>></a>'
+    return f'<a href="{preview_url}" target="_blank">点击查看WGS84地图预览>></a>'
