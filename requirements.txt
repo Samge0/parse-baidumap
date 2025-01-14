@@ -1,4 +1,4 @@
 folium==0.18.0
-gradio==5.7.1
+gradio==5.11.0
 fastapi
 uvicorn
