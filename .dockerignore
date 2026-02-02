@@ -156,3 +156,4 @@ res/screenshot
 configs.py
 
 preview/
+.claude/
