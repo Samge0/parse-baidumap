@@ -29,7 +29,7 @@ def preview_map(geo_str):
         return "自定义的WGS84地图围栏json不能为空"
     
     # fastapi的基础url
-    api_base_url = os.environ.get("API_BASE_URL", "http://localhost:7862")
+    api_base_url = os.environ.get("API_BASE_URL", "http://127.0.0.1:7862")
     
     # 生成地图
     html_name: str = "wgs84_map.html"

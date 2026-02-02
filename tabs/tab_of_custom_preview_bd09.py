@@ -30,7 +30,7 @@ def preview_map(app_key, geo_str):
         return "自定义的BD09地图围栏json不能为空"
     
     # fastapi的基础url
-    api_base_url = os.environ.get("API_BASE_URL", "http://localhost:7862")
+    api_base_url = os.environ.get("API_BASE_URL", "http://127.0.0.1:7862")
     
     # 生成地图
     html_name: str = "baidu_map_bd09.html"

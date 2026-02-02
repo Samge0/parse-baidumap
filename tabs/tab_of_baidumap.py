@@ -23,7 +23,7 @@ def create_parser_tab():
                 with gr.Row():
                     json_format = gr.Checkbox(label="输出JSON格式", value=True)
                     output_map_type = gr.Dropdown(label="坐标系统选择", choices=["WGS84", "BD09", "GCJ02"], value="WGS84")  # 默认选择WGS84
-                    app_key = gr.Textbox(label="地图Key（百度AK/高德Key）", value="", lines=1, placeholder="BD09预览需要百度AK，GCJ02预览需要高德Key")
+                    app_key = gr.Textbox(label="百度AK/高德Key", value="", lines=1, placeholder="BD09预览需要百度AK，GCJ02预览需要高德Key")
                     security_code = gr.Textbox(label="高德安全密钥", value="", lines=1, placeholder="仅GCJ02类型预览需要输入")
                 
                 with gr.Row():
@@ -94,7 +94,7 @@ def preview_map(geo_str, name_input, adcode_input, output_map_type, app_key, sec
         return "geo参数不能为空"
     
     # fastapi的基础url
-    api_base_url = os.environ.get("API_BASE_URL", "http://localhost:7862")
+    api_base_url = os.environ.get("API_BASE_URL", "http://127.0.0.1:7862")
     
     if output_map_type == "WGS84":
         # 生成地图

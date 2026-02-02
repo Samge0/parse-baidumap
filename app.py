@@ -58,7 +58,7 @@ async def preview_geo_map(
         raise HTTPException(status_code=400, detail="geo参数不能为空")
 
     # 获取API基础URL
-    api_base_url = os.environ.get("API_BASE_URL", "http://localhost:7862")
+    api_base_url = os.environ.get("API_BASE_URL", "http://127.0.0.1:7862")
 
     try:
         if map_type == "WGS84":

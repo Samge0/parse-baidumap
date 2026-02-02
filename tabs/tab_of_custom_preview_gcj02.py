@@ -46,7 +46,7 @@ def preview_map(app_key, security_code, geo_str):
         return "高德地图安全密钥不能为空"
 
     # fastapi的基础url
-    api_base_url = os.environ.get("API_BASE_URL", "http://localhost:7862")
+    api_base_url = os.environ.get("API_BASE_URL", "http://127.0.0.1:7862")
 
     # 生成地图
     html_name: str = "amap_map_gcj02.html"

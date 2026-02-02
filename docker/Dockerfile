@@ -14,7 +14,7 @@ EXPOSE 7862
 EXPOSE 7863
 
 # 设置环境变量
-ENV API_BASE_URL="http://localhost:7862"
+ENV API_BASE_URL="http://127.0.0.1:7862"
 
 # 复制当前目录中的所有文件到 /app
 COPY . .
