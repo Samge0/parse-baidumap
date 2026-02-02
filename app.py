@@ -12,10 +12,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 import gradio as gr
 import uvicorn
-from tabs import tab_of_baidumap, tab_of_custom_preview_wgs84, tab_of_custom_preview_bd09, tab_of_about
+from tabs import tab_of_baidumap, tab_of_custom_preview_wgs84, tab_of_custom_preview_bd09, tab_of_custom_preview_gcj02, tab_of_about
 import threading
 
-from utils import fileutil, maputil, bd09_preview_util
+from utils import fileutil, maputil, bd09_preview_util, gcj02_preview_util
 
 app = FastAPI()
 
@@ -34,7 +34,8 @@ async def preview_geo_map(
     map_type: Literal["WGS84", "BD09", "GCJ02"] = Query("WGS84", description="坐标类型"),
     name: str = Query("", description="自定义地域名称"),
     adcode: str = Query("", description="自定义区域编码"),
-    app_key: str = Query("", description="百度地图AK，仅BD09类型预览需要")
+    app_key: str = Query("", description="百度地图AK，仅BD09类型预览需要；高德Key，仅GCJ02类型预览需要"),
+    security_code: str = Query("", description="高德地图安全密钥，仅GCJ02类型预览需要")
 ):
     """
     解析geo字符串并生成地图预览（GET方式）
@@ -47,16 +48,14 @@ async def preview_geo_map(
         map_type: 坐标类型，可选 WGS84/BD09/GCJ02
         name: 自定义地域名称
         adcode: 自定义区域编码
-        app_key: 百度地图AK，仅BD09类型预览需要
+        app_key: 百度地图AK，仅BD09类型预览需要；高德Key，仅GCJ02类型预览需要
+        security_code: 高德地图安全密钥，仅GCJ02类型预览需要
 
     Returns:
         重定向到地图预览页面
     """
     if not geo_str:
         raise HTTPException(status_code=400, detail="geo参数不能为空")
-
-    if map_type == "GCJ02":
-        raise HTTPException(status_code=400, detail="GCJ02坐标不支持预览")
 
     # 获取API基础URL
     api_base_url = os.environ.get("API_BASE_URL", "http://localhost:7862")
@@ -92,6 +91,29 @@ async def preview_geo_map(
             # 根据md5生成唯一文件名
             html_name = f"{md5}_bd09_map.html"
             bd09_preview_util.save_preview_html(html_name, app_key, result_json)
+            preview_url = f"{api_base_url}/preview/{html_name}"
+
+        elif map_type == "GCJ02":
+            # 生成GCJ02地图预览
+            if not app_key:
+                raise HTTPException(status_code=400, detail="高德地图Key不能为空")
+
+            if not security_code:
+                raise HTTPException(status_code=400, detail="高德地图安全密钥不能为空")
+
+            # 解析geo数据
+            bbox_result = maputil.parse_bbox_data(geo_str, "GCJ02")
+            bbox_list = maputil.get_lat_lng_list(bbox_result)
+
+            coordinates_result = maputil.parse_coordinates_data(geo_str, "GCJ02")
+            coordinates_list = maputil.get_lat_lng_list(coordinates_result)
+
+            center_point = maputil.calculate_center_point(bbox_list)
+            result_json = maputil.export_json(coordinates_list, bbox_list, center_point, name, adcode)
+
+            # 根据md5生成唯一文件名
+            html_name = f"{md5}_gcj02_map.html"
+            gcj02_preview_util.save_preview_html(html_name, app_key, security_code, result_json)
             preview_url = f"{api_base_url}/preview/{html_name}"
 
         else:
@@ -166,6 +188,7 @@ with gr.Blocks(title="百度围栏解析") as iface:
         tab_of_baidumap.create_parser_tab()
         tab_of_custom_preview_wgs84.create_parser_tab()
         tab_of_custom_preview_bd09.create_parser_tab()
+        tab_of_custom_preview_gcj02.create_parser_tab()
         tab_of_about.create_about_tab()
 
 def run_fastapi():

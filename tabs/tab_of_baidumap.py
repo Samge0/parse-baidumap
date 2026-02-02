@@ -8,7 +8,7 @@ import os
 import tempfile
 import time
 import gradio as gr
-from utils import bd09_preview_util, maputil
+from utils import bd09_preview_util, gcj02_preview_util, maputil
 
 def create_parser_tab():
     with gr.Tab("解析"):
@@ -23,7 +23,8 @@ def create_parser_tab():
                 with gr.Row():
                     json_format = gr.Checkbox(label="输出JSON格式", value=True)
                     output_map_type = gr.Dropdown(label="坐标系统选择", choices=["WGS84", "BD09", "GCJ02"], value="WGS84")  # 默认选择WGS84
-                    app_key = gr.Textbox(label="百度地图AK", value="", lines=1, placeholder="仅BD09类型预览需要输入AK")
+                    app_key = gr.Textbox(label="地图Key（百度AK/高德Key）", value="", lines=1, placeholder="BD09预览需要百度AK，GCJ02预览需要高德Key")
+                    security_code = gr.Textbox(label="高德安全密钥", value="", lines=1, placeholder="仅GCJ02类型预览需要输入")
                 
                 with gr.Row():
                     submit_btn = gr.Button("提交")
@@ -45,7 +46,7 @@ def create_parser_tab():
 
         preview_btn.click(
             fn=preview_map,
-            inputs=[geo_input, name_input, adcode_input, output_map_type, app_key],  # 假设您的坐标输入组件名为 geo_input
+            inputs=[geo_input, name_input, adcode_input, output_map_type, app_key, security_code],  # 假设您的坐标输入组件名为 geo_input
             outputs=[preview_link]
         )
 
@@ -87,11 +88,8 @@ def parse_geo(geo_input, json_format, name_input, adcode_input, output_map_type)
     return result_str, gr.update(value=file_path, visible=True)
 
 # 生成WGS84地图预览的html
-def preview_map(geo_str, name_input, adcode_input, output_map_type, app_key):
-    
-    if output_map_type == "GCJ02":
-        return "GCJ02坐标不支持预览"
-    
+def preview_map(geo_str, name_input, adcode_input, output_map_type, app_key, security_code):
+
     if not geo_str:
         return "geo参数不能为空"
     
@@ -124,7 +122,32 @@ def preview_map(geo_str, name_input, adcode_input, output_map_type, app_key):
         # 生成地图
         html_name: str = "baidu_map_bd09.html"
         bd09_preview_util.save_preview_html(html_name, app_key, result_str)
-        
+
         # 返回预览链接
         preview_url = f"{api_base_url}/preview/{html_name}?t={time.time()}"
         return f'<a href="{preview_url}" target="_blank">点击查看BD09地图预览>></a>'
+
+    elif output_map_type == "GCJ02":
+
+        if not app_key:
+            return "高德地图Key不能为空"
+
+        if not security_code:
+            return "高德地图安全密钥不能为空"
+
+        bbox_result = maputil.parse_bbox_data(geo_str, output_map_type)
+        bbox_list = maputil.get_lat_lng_list(bbox_result)
+
+        coordinates_result = maputil.parse_coordinates_data(geo_str, output_map_type)
+        coordinates_list = maputil.get_lat_lng_list(coordinates_result)
+
+        center_point = maputil.calculate_center_point(bbox_list)
+        result_str = maputil.export_json(coordinates_list, bbox_list, center_point, name_input, adcode_input)
+
+        # 生成地图
+        html_name: str = "amap_map_gcj02.html"
+        gcj02_preview_util.save_preview_html(html_name, app_key, security_code, result_str)
+
+        # 返回预览链接
+        preview_url = f"{api_base_url}/preview/{html_name}?t={time.time()}"
+        return f'<a href="{preview_url}" target="_blank">点击查看GCJ02高德地图预览>></a>'
