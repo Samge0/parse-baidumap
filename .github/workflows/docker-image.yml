@@ -60,5 +60,5 @@ jobs:
           # 给清单打上多个标签
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/parse-baidumap:${{ steps.date.outputs.today }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/parse-baidumap:v1.0.1
+            ${{ secrets.DOCKERHUB_USERNAME }}/parse-baidumap:v1.0.2
             ${{ secrets.DOCKERHUB_USERNAME }}/parse-baidumap:latest

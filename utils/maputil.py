@@ -177,7 +177,7 @@ def parse_coordinates_data(geo_str: str, output_map_type: str = "WGS84"):
         转换后的坐标点字符串，格式为: "lng1,lat1;lng2,lat2;..."
     """
     geo_str = geo_str.split('|')
-    point = geo_str[2].split(",")
+    point = geo_str[2].replace(";", ",").split(",")
     return parse_map_data(point, output_map_type)
 
 
