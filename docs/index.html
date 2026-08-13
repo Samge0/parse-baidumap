@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百度地图围栏坐标参数解析小工具</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#e8f7fc',
+                            100: '#d0eff7',
+                            200: '#a6dff2',
+                            300: '#7ccfed',
+                            400: '#5dc0e8',
+                            500: '#41b0d8',
+                            600: '#2a8db8',
+                            700: '#236a8e',
+                            800: '#1d5273',
+                            900: '#163c58',
+                        },
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            300: '#d1d5db',
+                            400: '#9ca3af',
+                            500: '#6b7280',
+                            600: '#4b5563',
+                            700: '#374151',
+                            800: '#1f2937',
+                            900: '#111827',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'Inter', 'Manrope', 'sans-serif'],
+                        serif: ['Noto Serif SC', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f9fafb 0%, #e8f7fc 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #41b0d8 0%, #2a8db8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .icon-gradient {
+            background: linear-gradient(135deg, #41b0d8 0%, #2a8db8 100%);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased">
+    <!-- Top Navigation -->
+    <nav class="fixed w-full top-0 z-50 glass-card">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <img src="icon.png" alt="百度地图围栏工具" class="w-9 h-9 rounded-lg">
+                    <span class="ml-3 text-lg font-semibold text-gray-800">围栏解析工具</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-gray-600 hover:text-white transition-colors">功能特性</a>
+                    <a href="#how-it-works" class="text-gray-600 hover:text-white transition-colors">使用流程</a>
+                    <a href="#api" class="text-gray-600 hover:text-white transition-colors">API 接口</a>
+                    <a href="#faq" class="text-gray-600 hover:text-white transition-colors">常见问题</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="https://github.com/yourusername/parse-baidumap" class="text-gray-600 hover:text-gray-900 transition-colors">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                    <a href="https://github.com/yourusername/parse-baidumap/archive/refs/heads/main.zip" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-lg shadow-brand-500/20">
+                        立即开始
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center max-w-4xl mx-auto">
+                <h1 class="text-5xl sm:text-6xl font-bold text-gray-900 mb-6">
+                    百度地图<span class="gradient-text">围栏坐标</span>参数解析小工具
+                </h1>
+                <p class="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+                    快速解析百度地图围栏 geo 字符串，支持 WGS84、BD09、GCJ02 多种坐标系统转换，提供实时地图预览和 RESTful API 接口
+                </p>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a href="#how-it-works" class="w-full sm:w-auto px-8 py-4 bg-brand-500 hover:bg-brand-600 text-white rounded-xl font-semibold text-lg transition-all shadow-lg shadow-brand-500/30 hover:shadow-xl hover:shadow-brand-500/40 transform hover:-translate-y-0.5">
+                        开始使用
+                    </a>
+                    <a href="https://github.com/yourusername/parse-baidumap" class="w-full sm:w-auto px-8 py-4 bg-white hover:bg-gray-50 text-gray-800 rounded-xl font-semibold text-lg border-2 border-gray-200 hover:border-brand-300 transition-all">
+                        GitHub 仓库
+                    </a>
+                </div>
+                <div class="mt-12 flex items-center justify-center gap-8 text-gray-500 text-sm">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span>免费开源</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span>RESTful API</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span>多坐标系支持</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">核心功能特性</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    提供完整的百度地图围栏坐标解析解决方案，支持多种坐标系统和灵活的部署方式
+                </p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="glass-card rounded-2xl p-8 hover:shadow-xl transition-shadow border border-white/50">
+                    <div class="w-14 h-14 icon-gradient rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0121 18.382V7.618a1 1 0 01-.553-.894L15 7m0 13V7"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">多坐标系统支持</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        支持 WGS84、BD09（百度坐标系）、GCJ02（高德/火星坐标系）三种主流坐标系统自动转换
+                    </p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="glass-card rounded-2xl p-8 hover:shadow-xl transition-shadow border border-white/50">
+                    <div class="w-14 h-14 icon-gradient rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">实时地图预览</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        生成交互式地图预览页面，可视化显示围栏区域，支持自定义地域名称和区域编码
+                    </p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="glass-card rounded-2xl p-8 hover:shadow-xl transition-shadow border border-white/50">
+                    <div class="w-14 h-14 icon-gradient rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">RESTful API</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        提供 RESTful 风格的 API 接口，返回标准 GeoJSON 格式数据，便于集成到各类应用系统
+                    </p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="glass-card rounded-2xl p-8 hover:shadow-xl transition-shadow border border-white/50">
+                    <div class="w-14 h-14 icon-gradient rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">双重界面支持</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        提供 Gradio 可视化操作界面和命令行 API 两种使用方式，满足不同场景需求
+                    </p>
+                </div>
+                
+                <!-- Feature 5 -->
+                <div class="glass-card rounded-2xl p-8 hover:shadow-xl transition-shadow border border-white/50">
+                    <div class="w-14 h-14 icon-gradient rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">安全可靠</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        支持高德地图安全密钥验证，确保 API 调用安全性，本地部署数据不外泄
+                    </p>
+                </div>
+                
+                <!-- Feature 6 -->
+                <div class="glass-card rounded-2xl p-8 hover:shadow-xl transition-shadow border border-white/50">
+                    <div class="w-14 h-14 icon-gradient rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">简单易部署</h3>
+                    <p class="text-gray-600 leading-relaxed">
+                        基于 Python + FastAPI + Gradio 构建，提供 conda 环境配置，一键启动即用
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works Section -->
+    <section id="how-it-works" class="py-20 px-4 sm:px-6 lg:px-8 bg-white/50">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">快速开始使用</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    三步即可开始解析百度地图围栏坐标
+                </p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Step 1 -->
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm shadow-blue-500/30 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold text-white">1</div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">创建环境</h3>
+                    <div class="bg-gray-900 rounded-lg p-4 text-left text-sm text-gray-300 overflow-x-auto">
+                        <code>conda create -n parse-baidumap -y python=3.10.13</code>
+                    </div>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm shadow-blue-500/30 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold text-white">2</div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">安装依赖</h3>
+                    <div class="bg-gray-900 rounded-lg p-4 text-left text-sm text-gray-300 overflow-x-auto">
+                        <code>pip install -r requirements.txt</code>
+                    </div>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm shadow-blue-500/30 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold text-white">3</div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">启动服务</h3>
+                    <div class="bg-gray-900 rounded-lg p-4 text-left text-sm text-gray-300 overflow-x-auto">
+                        <code>python app.py</code>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center">
+                <p class="text-gray-600 mb-6">启动后访问以下地址：</p>
+                <div class="inline-flex flex-col sm:flex-row gap-4">
+                    <div class="glass-card rounded-lg px-6 py-3 border border-brand-200">
+                        <span class="text-gray-600 text-sm">FastAPI 服务：</span>
+                        <span class="font-mono text-white ml-2">http://127.0.0.1:7862</span>
+                    </div>
+                    <div class="glass-card rounded-lg px-6 py-3 border border-brand-200">
+                        <span class="text-gray-600 text-sm">Gradio 界面：</span>
+                        <span class="font-mono text-white ml-2">http://127.0.0.1:7863</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- API Section -->
+    <section id="api" class="py-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">API 接口说明</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    提供两个核心接口，满足地图预览和数据解析需求
+                </p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- API 1 -->
+                <div class="glass-card rounded-2xl overflow-hidden border border-white/50">
+                    <div class="bg-gradient-to-r from-brand-500 to-brand-600 px-6 py-4">
+                        <h3 class="text-xl font-semibold text-white">地图预览接口</h3>
+                        <p class="text-brand-100 text-sm mt-1">/preview_geo</p>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-4">解析百度地图 geo 字符串并生成地图预览页面，支持三种坐标系统</p>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center text-sm">
+                                <span class="font-mono text-white w-32">geo_str</span>
+                                <span class="text-gray-600">原始 geo 字符串（URL 编码）</span>
+                                <span class="ml-auto text-xs bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm shadow-blue-500/30 text-red-700 px-2 py-1 rounded">必填</span>
+                            </div>
+                            <div class="flex items-center text-sm">
+                                <span class="font-mono text-white w-32">md5</span>
+                                <span class="text-gray-600">用于生成唯一文件名的 MD5 值</span>
+                                <span class="ml-auto text-xs bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm shadow-blue-500/30 text-red-700 px-2 py-1 rounded">必填</span>
+                            </div>
+                            <div class="flex items-center text-sm">
+                                <span class="font-mono text-white w-32">map_type</span>
+                                <span class="text-gray-600">WGS84/BD09/GCJ02</span>
+                                <span class="ml-auto text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">可选</span>
+                            </div>
+                            <div class="flex items-center text-sm">
+                                <span class="font-mono text-white w-32">name</span>
+                                <span class="text-gray-600">自定义地域名称</span>
+                                <span class="ml-auto text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">可选</span>
+                            </div>
+                            <div class="flex items-center text-sm">
+                                <span class="font-mono text-white w-32">adcode</span>
+                                <span class="text-gray-600">自定义区域编码</span>
+                                <span class="ml-auto text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">可选</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 bg-gray-900 rounded-lg p-4 text-sm text-gray-300 overflow-x-auto">
+                            <code>curl "http://127.0.0.1:7862/preview_geo?geo_str=...&md5=abc123&map_type=WGS84&name=测试区域"</code>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- API 2 -->
+                <div class="glass-card rounded-2xl overflow-hidden border border-white/50">
+                    <div class="bg-gradient-to-r from-brand-500 to-brand-600 px-6 py-4">
+                        <h3 class="text-xl font-semibold text-white">数据解析接口</h3>
+                        <p class="text-brand-100 text-sm mt-1">/api/geo/parse</p>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-4">解析百度地图 geo 字符串并返回标准 GeoJSON 格式数据</p>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-center text-sm">
+                                <span class="font-mono text-white w-32">geo_str</span>
+                                <span class="text-gray-600">原始 geo 字符串（URL 编码）</span>
+                                <span class="ml-auto text-xs bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm shadow-blue-500/30 text-red-700 px-2 py-1 rounded">必填</span>
+                            </div>
+                            <div class="flex items-center text-sm">
+                                <span class="font-mono text-white w-32">map_type</span>
+                                <span class="text-gray-600">WGS84/BD09/GCJ02</span>
+                                <span class="ml-auto text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">可选</span>
+                            </div>
+                            <div class="flex items-center text-sm">
+                                <span class="font-mono text-white w-32">name</span>
+                                <span class="text-gray-600">自定义地域名称</span>
+                                <span class="ml-auto text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">可选</span>
+                            </div>
+                            <div class="flex items-center text-sm">
+                                <span class="font-mono text-white w-32">adcode</span>
+                                <span class="text-gray-600">自定义区域编码</span>
+                                <span class="ml-auto text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">可选</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 bg-gray-900 rounded-lg p-4 text-sm text-gray-300 overflow-x-auto">
+                            <code>curl "http://127.0.0.1:7862/api/geo/parse?geo_str=...&map_type=WGS84"</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-20 px-4 sm:px-6 lg:px-8 bg-white/50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">常见问题解答</h2>
+                <p class="text-lg text-gray-600">
+                    关于使用中可能遇到的问题
+                </p>
+            </div>
+            
+            <div class="space-y-4">
+                <details class="glass-card rounded-xl overflow-hidden border border-white/50 group">
+                    <summary class="px-6 py-4 cursor-pointer font-semibold text-gray-900 hover:bg-brand-50 transition-colors flex items-center justify-between">
+                        <span>什么是百度地图围栏 geo 字符串？</span>
+                        <svg class="w-5 h-5 text-brand-500 transform group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <div class="px-6 pb-4 text-gray-600">
+                        百度地图围栏 geo 字符串是百度地图 API 返回的区域边界坐标数据格式，包含多边形顶点坐标信息。本工具专门解析这种格式，并将其转换为标准的 GeoJSON 格式，便于在其他地图平台使用。
+                    </div>
+                </details>
+                
+                <details class="glass-card rounded-xl overflow-hidden border border-white/50 group">
+                    <summary class="px-6 py-4 cursor-pointer font-semibold text-gray-900 hover:bg-brand-50 transition-colors flex items-center justify-between">
+                        <span>三种坐标系统有什么区别？</span>
+                        <svg class="w-5 h-5 text-brand-500 transform group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <div class="px-6 pb-4 text-gray-600">
+                        <ul class="space-y-2">
+                            <li><strong>WGS84：</strong>国际标准坐标系统，Google Earth、GPS 等使用</li>
+                            <li><strong>BD09：</strong>百度地图专用坐标系统，在百度地图平台显示准确</li>
+                            <li><strong>GCJ02：</strong>火星坐标系，高德地图、腾讯地图等国内地图平台使用</li>
+                        </ul>
+                    </div>
+                </details>
+                
+                <details class="glass-card rounded-xl overflow-hidden border border-white/50 group">
+                    <summary class="px-6 py-4 cursor-pointer font-semibold text-gray-900 hover:bg-brand-50 transition-colors flex items-center justify-between">
+                        <span>如何获取百度地图 AK 和高德地图 Key？</span>
+                        <svg class="w-5 h-5 text-brand-500 transform group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <div class="px-6 pb-4 text-gray-600">
+                        <p>需要分别注册百度地图开放平台和高德地图开放平台账号，创建应用后获取对应的 API Key。高德地图还需要获取安全密钥（security_code）用于接口签名验证。</p>
+                    </div>
+                </details>
+                
+                <details class="glass-card rounded-xl overflow-hidden border border-white/50 group">
+                    <summary class="px-6 py-4 cursor-pointer font-semibold text-gray-900 hover:bg-brand-50 transition-colors flex items-center justify-between">
+                        <span>生成的地图预览文件保存在哪里？</span>
+                        <svg class="w-5 h-5 text-brand-500 transform group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <div class="px-6 pb-4 text-gray-600">
+                        <p>地图预览文件默认保存在当前工作目录的 `geo_maps` 子目录下，文件名基于提供的 MD5 值生成，确保每个围栏区域都有唯一的预览文件。</p>
+                    </div>
+                </details>
+                
+                <details class="glass-card rounded-xl overflow-hidden border border-white/50 group">
+                    <summary class="px-6 py-4 cursor-pointer font-semibold text-gray-900 hover:bg-brand-50 transition-colors flex items-center justify-between">
+                        <span>是否支持商业使用？</span>
+                        <svg class="w-5 h-5 text-brand-500 transform group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <div class="px-6 pb-4 text-gray-600">
+                        <p>本项目采用 MIT 许可证，支持商业使用。但请注意，百度地图和高德地图的 API 调用需要遵守对应平台的使用条款和商业授权要求。</p>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <img src="icon.png" alt="百度地图围栏工具" class="w-8 h-8 rounded-lg">
+                        <span class="ml-3 text-white font-semibold">围栏解析工具</span>
+                    </div>
+                    <p class="text-sm">
+                        专业的百度地图围栏坐标参数解析工具，支持多种坐标系统转换和实时地图预览。
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4">快速链接</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#features" class="hover:text-brand-400 transition-colors">功能特性</a></li>
+                        <li><a href="#how-it-works" class="hover:text-brand-400 transition-colors">使用流程</a></li>
+                        <li><a href="#api" class="hover:text-brand-400 transition-colors">API 接口</a></li>
+                        <li><a href="#faq" class="hover:text-brand-400 transition-colors">常见问题</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4">开源协议</h4>
+                    <div class="inline-flex items-center px-4 py-2 bg-gray-800 rounded-lg">
+                        <svg class="w-5 h-5 text-brand-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span class="text-sm">MIT License</span>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between">
+                <p class="text-sm">© 2024 百度地图围栏坐标参数解析小工具. 保留所有权利.</p>
+                <div class="flex items-center space-x-4 mt-4 md:mt-0">
+                    <a href="https://github.com/yourusername/parse-baidumap" class="text-gray-400 hover:text-white transition-colors">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                    <span class="text-sm">Made with ❤️ for GIS developers</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Smooth scroll for anchor links -->
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
